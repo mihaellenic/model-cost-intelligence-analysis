@@ -1,0 +1,160 @@
+[
+  {
+    "prefix": "anthropic/claude-",
+    "family": "claude",
+    "rationale": "Claude is a frontier coding-agent family."
+  },
+  {
+    "prefix": "openai/gpt-oss-",
+    "family": "gpt-oss",
+    "exclude": ["safeguard"],
+    "rationale": "Open-weight GPT models are coding-capable; safety-only variants are excluded."
+  },
+  {
+    "prefix": "openai/gpt-",
+    "family": "gpt",
+    "exclude": ["image", "audio"],
+    "ambiguous": true,
+    "rationale": "GPT coding models are included; image and audio modalities are excluded."
+  },
+  {
+    "prefix": "openai/o1",
+    "family": "gpt",
+    "ambiguous": true,
+    "rationale": "OpenAI o1 reasoning models are coding-capable."
+  },
+  {
+    "prefix": "openai/o3",
+    "family": "gpt",
+    "ambiguous": true,
+    "rationale": "OpenAI o3 reasoning models are coding-capable."
+  },
+  {
+    "prefix": "openai/o4",
+    "family": "gpt",
+    "ambiguous": true,
+    "rationale": "OpenAI o4 reasoning models are coding-capable."
+  },
+  {
+    "prefix": "google/gemini-",
+    "family": "gemini",
+    "exclude": ["image"],
+    "ambiguous": true,
+    "rationale": "Gemini is a frontier coding family; image-only variants are excluded."
+  },
+  {
+    "prefix": "deepseek/deepseek-",
+    "family": "deepseek",
+    "exclude": ["vision"],
+    "rationale": "DeepSeek V-series and R-series models are coding and reasoning candidates; vision variants are excluded."
+  },
+  {
+    "prefix": "qwen/qwen",
+    "family": "qwen",
+    "exclude": ["-vl-"],
+    "rationale": "Qwen and Qwen Coder are coding-capable; vision-language variants are excluded."
+  },
+  {
+    "prefix": "mistralai/codestral-",
+    "family": "codestral",
+    "rationale": "Codestral is a dedicated code-model family."
+  },
+  {
+    "prefix": "mistralai/devstral-",
+    "family": "devstral",
+    "rationale": "Devstral is a dedicated agentic coding-model family."
+  },
+  {
+    "prefix": "mistralai/mistral-",
+    "family": "mistral",
+    "ambiguous": true,
+    "rationale": "Mistral instruction models are general-purpose coding candidates."
+  },
+  {
+    "prefix": "mistralai/ministral-",
+    "family": "mistral",
+    "ambiguous": true,
+    "rationale": "Ministral is Mistral's smaller instruction-model line and is coding-capable."
+  },
+  {
+    "prefix": "mistralai/mixtral-",
+    "family": "mistral",
+    "ambiguous": true,
+    "rationale": "Mixtral instruction models are open-weight coding candidates."
+  },
+  {
+    "prefix": "meta-llama/llama-",
+    "family": "llama",
+    "exclude": ["guard"],
+    "ambiguous": true,
+    "rationale": "Llama instruct models are coding-capable; guard and safety variants are excluded."
+  },
+  {
+    "prefix": "google/gemma-",
+    "family": "gemma",
+    "ambiguous": true,
+    "rationale": "Gemma instruction models are open-weight coding candidates."
+  },
+  {
+    "prefix": "microsoft/phi-",
+    "family": "phi",
+    "ambiguous": true,
+    "rationale": "Phi instruction models are small coding-capable candidates."
+  },
+  {
+    "prefix": "ibm-granite/granite-",
+    "family": "granite",
+    "ambiguous": true,
+    "rationale": "Granite instruction and code models are coding candidates."
+  },
+  {
+    "prefix": "z-ai/glm-",
+    "family": "glm",
+    "exclude": ["glm-5v", "glm-4.6v", "glm-4.5v"],
+    "rationale": "GLM coding and reasoning models are included; known vision variants are excluded."
+  },
+  {
+    "prefix": "moonshotai/kimi-",
+    "family": "kimi",
+    "ambiguous": true,
+    "rationale": "Kimi reasoning and code variants are coding candidates."
+  },
+  {
+    "prefix": "minimax/minimax-",
+    "family": "minimax",
+    "ambiguous": true,
+    "rationale": "MiniMax reasoning models are coding candidates."
+  },
+  {
+    "prefix": "bytedance-seed/seed-2.0-code",
+    "family": "seed-code",
+    "rationale": "Seed 2.0 Code is explicitly a code model."
+  },
+  {
+    "prefix": "kwaipilot/kat-coder-",
+    "family": "kat-coder",
+    "rationale": "KAT-Coder is explicitly a coding-model family."
+  },
+  {
+    "prefix": "relace/relace-apply-",
+    "family": "relace",
+    "rationale": "Relace Apply is a dedicated code-editing model."
+  },
+  {
+    "prefix": "morph/morph-",
+    "family": "morph",
+    "rationale": "Morph models are designed for coding-agent editing."
+  },
+  {
+    "prefix": "poolside/laguna-",
+    "family": "poolside",
+    "rationale": "Poolside Laguna is a coding-model family."
+  },
+  {
+    "prefix": "x-ai/grok-",
+    "family": "grok",
+    "exclude": ["grok-build-"],
+    "ambiguous": true,
+    "rationale": "Grok is a general-purpose coding candidate; build-only experimental variants are excluded."
+  }
+]

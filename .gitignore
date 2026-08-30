@@ -1,0 +1,12 @@
+node_modules
+dist
+.DS_Store
+.env
+
+# generated data files (regenerated via `npm run data`)
+public/models.json
+public/ollama-raw.json
+public/intelligence-raw.json
+public/pricing-raw.json
+public/aa-raw.json
+public/benchmarks-raw.json

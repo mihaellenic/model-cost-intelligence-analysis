@@ -1,0 +1,24 @@
+{
+  "name": "model-cost-intelligence-analysis",
+  "version": "1.0.0",
+  "description": "Static decision matrix for coding LLMs: intelligence vs cost.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test",
+    "data": "node --env-file=.env scripts/fetch-pricing.js && node --env-file=.env scripts/fetch-aa-benchmarks.js && node scripts/build-data.js",
+    "data:pricing": "node --env-file=.env scripts/fetch-pricing.js",
+    "data:aa": "node --env-file=.env scripts/fetch-aa-benchmarks.js",
+    "data:benchmarks": "node --env-file=.env scripts/fetch-openrouter-benchmarks.js",
+    "dev": "vite",
+    "build": "npm run data && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "cheerio": "^1.0.0",
+    "vite": "^5.4.10"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.6"
+  }
+}

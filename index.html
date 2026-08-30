@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LLM Decision Matrix — Coding Models by Cost &amp; Intelligence</title>
+    <meta name="description" content="Compare coding LLM models by intelligence vs cost, with workflow-aware pair recommendations." />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230b0f17'/><rect x='14' y='46' width='16' height='40' fill='%232ecc71'/><rect x='42' y='24' width='16' height='62' fill='%234cc2ff'/><rect x='70' y='10' width='16' height='76' fill='%23e74c3c'/></svg>" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="top__inner">
+        <div>
+          <h1>LLM Decision Matrix</h1>
+          <p class="sub">Pick the right coding model by intelligence vs $/1M tokens.</p>
+        </div>
+        <div class="meta" id="meta"></div>
+      </div>
+    </header>
+
+    <section class="filters">
+      <div class="filters__inner">
+        <label class="filter">
+          <span>Family</span>
+          <select id="filter-family" multiple size="4"></select>
+        </label>
+        <label class="filter filter--check">
+          <input type="checkbox" id="filter-with-intel" />
+          <span>Only models with intelligence score</span>
+        </label>
+        <label class="filter filter--check">
+          <input type="checkbox" id="filter-with-price" />
+          <span>Only models with pricing</span>
+        </label>
+      </div>
+    </section>
+
+    <main class="charts">
+      <section class="card pair" aria-labelledby="pair-title">
+        <header class="card__head">
+          <h2 id="pair-title">Recommended workflow pair</h2>
+          <p>Two distinct models: a stronger planner and a cost-efficient executor. Ranked by expected workflow cost.</p>
+        </header>
+        <div class="card__body">
+          <div class="pair__controls" aria-label="Task mix controls">
+            <label class="pair__control">
+              <span>Planning</span>
+              <input id="mix-planning" type="number" min="0" step="1" value="65" inputmode="decimal" />
+              <span>%</span>
+            </label>
+            <label class="pair__control">
+              <span>Execution</span>
+              <input id="mix-execution" type="number" min="0" step="1" value="30" inputmode="decimal" />
+              <span>%</span>
+            </label>
+            <label class="pair__control">
+              <span>Verification</span>
+              <input id="mix-verification" type="number" min="0" step="1" value="5" inputmode="decimal" />
+              <span>%</span>
+            </label>
+            <label class="pair__toggle">
+              <input id="model-verification" type="checkbox" />
+              <span>Model-based verification</span>
+            </label>
+          </div>
+          <div class="pair__context" id="pair-context"></div>
+          <div class="pair__results" id="pair-results" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <header class="card__head">
+          <h2>Intelligence ranking</h2>
+          <p>Higher = smarter on Artificial Analysis benchmarks.</p>
+        </header>
+        <div class="card__body"><canvas id="bar"></canvas></div>
+      </section>
+
+      <section class="card">
+        <header class="card__head">
+          <h2>Cost vs Intelligence</h2>
+          <p>Top-left = sweet spot. Bottom-right = avoid. Median lines split the quadrants.</p>
+        </header>
+        <div class="card__body"><canvas id="scatter"></canvas></div>
+      </section>
+
+    </main>
+
+    <footer class="foot">
+      <p>
+        Intelligence data via <a href="https://artificialanalysis.ai/" target="_blank" rel="noopener">Artificial Analysis API</a> (attribution required by AA terms on all tiers) ·
+        <a href="https://openrouter.ai" target="_blank" rel="noopener">OpenRouter catalog and pricing</a>.
+        Refresh with <code>npm run data</code>.
+      </p>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
