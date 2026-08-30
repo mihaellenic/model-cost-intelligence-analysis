@@ -13,6 +13,7 @@ import { validatePricingCapture } from './lib/pricing-data.js';
 import { collapseCatalogVariants } from './lib/catalog-collapse.js';
 import { resolveAaIntelligence } from './lib/aa-resolution.js';
 import { resolveVariantInheritance } from './lib/variant-inherit.js';
+import { applyIntelligenceOverrides } from './lib/intelligence-overrides.js';
 
 function safeRead(path) {
   try { return JSON.parse(readFileSync(path, 'utf8')); } catch { return null; }
@@ -91,6 +92,7 @@ export function buildModelRecords({
   aaCapture,
   generatedAt = new Date().toISOString(),
   pricingSource = null,
+  intelligenceOverrides = [],
 }) {
   const aaModels = validateAaCapture(aaCapture);
   const eligibleCatalog = priceList
@@ -128,6 +130,8 @@ export function buildModelRecords({
     return finalRecord;
   });
 
+  const overrideResult = applyIntelligenceOverrides(models, intelligenceOverrides);
+
   return {
     generated_at: generatedAt,
     benchmarks_fetched_at: aaCapture.fetched_at ?? null,
@@ -142,8 +146,11 @@ export function buildModelRecords({
       collisions,
       inheritances,
       inheritance_skips: inheritanceSkips,
+      manual_overrides: overrideResult.applied,
+      override_skips_live: overrideResult.skippedLive,
+      override_unknown_ids: overrideResult.unknown,
     },
-    models,
+    models: overrideResult.models,
   };
 }
 
@@ -151,6 +158,7 @@ export function main(root = process.cwd()) {
   const allowlist = safeRead(resolve(root, 'scripts/family-allowlist.json'));
   const priceCapture = safeRead(resolve(root, 'public/pricing-raw.json'));
   const aaCapture = safeRead(resolve(root, 'public/aa-raw.json'));
+  const intelligenceOverrides = safeRead(resolve(root, 'scripts/intelligence-overrides.json'));
   if (!allowlist) throw new Error('family allowlist is missing or malformed');
 
   const output = buildModelRecords({
@@ -158,6 +166,7 @@ export function main(root = process.cwd()) {
     priceList: validatePricingCapture(priceCapture),
     aaCapture,
     pricingSource: priceCapture?.source ?? null,
+    intelligenceOverrides,
   });
   const outPath = resolve(root, 'public/models.json');
   writeFileSync(outPath, JSON.stringify(output, null, 2));
@@ -177,6 +186,15 @@ export function main(root = process.cwd()) {
   }
   for (const skip of output.audit.inheritance_skips) {
     console.log(`[build-data] inheritance skip ${JSON.stringify(skip)}`);
+  }
+  for (const override of output.audit.manual_overrides) {
+    console.log(`[build-data] manual override ${JSON.stringify(override)}`);
+  }
+  for (const skip of output.audit.override_skips_live) {
+    console.log(`[build-data] override skipped (live score wins) ${JSON.stringify(skip)}`);
+  }
+  for (const unknown of output.audit.override_unknown_ids) {
+    console.warn(`[build-data] override unknown model id ${JSON.stringify(unknown)}`);
   }
   for (const collision of output.audit.collisions) {
     console.warn(`[build-data] AA collision ${JSON.stringify(collision)}`);

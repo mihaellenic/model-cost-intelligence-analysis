@@ -52,6 +52,12 @@ export function createScatterChart(canvas) {
               if (m.intelligence_scope === 'effort-median') {
                 lines.push('Intelligence: effort-variant median');
               }
+              if (m.intelligence_scope === 'variant-inherited') {
+                lines.push(`Intelligence: inherited from ${m.inherit_from ?? 'base'}`);
+              }
+              if (m.intelligence_source === 'manual') {
+                lines.push('Intelligence: manual override (cited)');
+              }
               if (m.cost_per_1m_avg != null) lines.push(`Cost: $${m.cost_per_1m_avg.toFixed(4)} / 1M (avg)`);
               if (m.cheapest_provider?.name) lines.push(`Cheapest: ${m.cheapest_provider.name}`);
               lines.push(`Context: ${m.context_length?.toLocaleString() ?? '—'} tokens  ·  Family: ${m.family}`);

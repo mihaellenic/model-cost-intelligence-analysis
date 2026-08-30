@@ -1,0 +1,22 @@
+[
+  {
+    "model_id": "qwen/qwen3.6-max-preview",
+    "intelligence": 41.1,
+    "coding_index": null,
+    "agentic_index": null,
+    "source_url": "https://artificialanalysis.ai/models/qwen3-6-max",
+    "source_type": "aa-web",
+    "captured_at": "2026-08-30",
+    "note": "AA web page 'Qwen3.6 Max Preview' (slug qwen3-6-max) publishes intelligence 41.1 (v4.1.1). OpenRouter ID qwen/qwen3.6-max-preview is the same model (name 'Qwen3.6 Max Preview', desc 'Qwen3.6-Max-Preview is a proprietary frontier model'). AA free-tier capture has no qwen3-6-max row; web value used verbatim."
+  },
+  {
+    "model_id": "google/gemini-3-flash-preview",
+    "intelligence": 38.7,
+    "coding_index": null,
+    "agentic_index": null,
+    "source_url": "https://artificialanalysis.ai/models/gemini-3-flash-reasoning",
+    "source_type": "aa-web",
+    "captured_at": "2026-08-30",
+    "note": "AA web page 'Gemini 3 Flash Preview (Reasoning)' (slug gemini-3-flash-reasoning) publishes intelligence 38.7 (v4.1.1). OpenRouter ID google/gemini-3-flash-preview is the same model (name 'Gemini 3 Flash Preview', desc 'high speed, high value thinking model'). AA free-tier capture has the reasoning variant (38.7) but the normalized slug join misses it; web value used verbatim."
+  }
+]
