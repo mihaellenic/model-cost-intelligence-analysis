@@ -27,7 +27,7 @@ export function extractSiblingReference(description) {
   return null;
 }
 
-function isProtectedVariant(id) {
+export function isProtectedVariant(id) {
   const tail = id.toLowerCase().split('/').at(-1);
   if (/(?:-chat|-instant)(?:$|-)/.test(tail)) return true;
   return tail === 'o1-pro'
@@ -35,7 +35,7 @@ function isProtectedVariant(id) {
     || /^gpt-5\.[245]-pro$/.test(tail);
 }
 
-function stableJson(value) {
+export function stableJson(value) {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
   if (value && typeof value === 'object') {
     return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(',')}}`;

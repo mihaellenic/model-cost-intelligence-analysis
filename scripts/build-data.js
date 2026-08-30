@@ -12,6 +12,7 @@ import {
 import { validatePricingCapture } from './lib/pricing-data.js';
 import { collapseCatalogVariants } from './lib/catalog-collapse.js';
 import { resolveAaIntelligence } from './lib/aa-resolution.js';
+import { resolveVariantInheritance } from './lib/variant-inherit.js';
 
 function safeRead(path) {
   try { return JSON.parse(readFileSync(path, 'utf8')); } catch { return null; }
@@ -56,6 +57,34 @@ function makeModelRecord(model, rule, aaModels) {
   return record;
 }
 
+function applyVariantInheritance(record, rawVariant, nonCollapse, baseById, aaModels, inheritedIds) {
+  const rawBase = baseById.get(nonCollapse.base_id);
+  if (!rawBase) return { record, inherited: null, skipReason: 'base_missing' };
+  const baseScore = resolveAaIntelligence(rawBase.id, aaModels);
+  const base = {
+    ...rawBase,
+    intelligence: baseScore.intelligence,
+    coding_index: baseScore.coding_index,
+    agentic_index: baseScore.agentic_index,
+    inherit_from: inheritedIds.has(rawBase.id) ? rawBase.id : null,
+  };
+  const inherited = resolveVariantInheritance(nonCollapse, rawVariant, base);
+  if (inherited.skip) return { record, inherited: null, skipReason: inherited.skip };
+  return {
+    record: {
+      ...record,
+      intelligence: inherited.intelligence,
+      intelligence_source: 'artificial-analysis',
+      coding_index: inherited.coding_index,
+      agentic_index: inherited.agentic_index,
+      intelligence_scope: inherited.intelligence_scope,
+      inherit_from: inherited.inherit_from,
+    },
+    inherited,
+    skipReason: null,
+  };
+}
+
 export function buildModelRecords({
   allowlist,
   priceList,
@@ -71,11 +100,32 @@ export function buildModelRecords({
     .map(({ model, rule }) => ({ ...model, rule }));
   const collapsed = collapseCatalogVariants(eligibleCatalog);
   const collisions = [];
+  const inheritances = [];
+  const inheritanceSkips = [];
+  const baseById = new Map(collapsed.models.map((model) => [model.id, model]));
+  const nonCollapseByVariant = new Map(
+    collapsed.nonCollapses.map((entry) => [entry.variant_id, entry]),
+  );
+  const inheritedIds = new Set();
   const models = collapsed.models.map(({ rule, ...model }) => {
     const record = makeModelRecord(model, rule, aaModels);
     const resolved = resolveAaIntelligence(model.id, aaModels);
     if (resolved.collision) collisions.push(resolved.collision);
-    return record;
+    const nonCollapse = nonCollapseByVariant.get(model.id);
+    if (!nonCollapse) return record;
+    const { record: finalRecord, inherited, skipReason } = applyVariantInheritance(record, model, nonCollapse, baseById, aaModels, inheritedIds);
+    if (inherited) {
+      inheritedIds.add(model.id);
+      inheritances.push({
+        variant_id: model.id,
+        base_id: inherited.inherit_from,
+        matched_phrase: inherited.matched_phrase,
+        fields_inherited: inherited.fields_inherited,
+      });
+    } else {
+      inheritanceSkips.push({ variant_id: model.id, base_id: nonCollapse.base_id, reason: skipReason });
+    }
+    return finalRecord;
   });
 
   return {
@@ -90,6 +140,8 @@ export function buildModelRecords({
       collapses: collapsed.collapses,
       non_collapses: collapsed.nonCollapses,
       collisions,
+      inheritances,
+      inheritance_skips: inheritanceSkips,
     },
     models,
   };
@@ -113,11 +165,18 @@ export function main(root = process.cwd()) {
   const withScore = output.models.filter((model) => model.intelligence != null).length;
   const withPrice = output.models.filter((model) => model.cost_per_1m_avg != null).length;
   const effortMedians = output.models.filter((model) => model.intelligence_scope === 'effort-median').length;
+  const variantInherited = output.models.filter((model) => model.intelligence_scope === 'variant-inherited').length;
   console.log(`[build-data] wrote ${outPath}`);
   console.log(`[build-data] ${output.models.length} models, ${withScore} with intelligence, ${withPrice} with pricing`);
-  console.log(`[build-data] ${output.audit.collapses.length} variants collapsed, ${effortMedians} effort-median scores`);
+  console.log(`[build-data] ${output.audit.collapses.length} variants collapsed, ${effortMedians} effort-median scores, ${variantInherited} variant-inherited scores`);
   for (const collapse of output.audit.collapses) {
     console.log(`[build-data] collapse ${JSON.stringify(collapse)}`);
+  }
+  for (const inheritance of output.audit.inheritances) {
+    console.log(`[build-data] inheritance ${JSON.stringify(inheritance)}`);
+  }
+  for (const skip of output.audit.inheritance_skips) {
+    console.log(`[build-data] inheritance skip ${JSON.stringify(skip)}`);
   }
   for (const collision of output.audit.collisions) {
     console.warn(`[build-data] AA collision ${JSON.stringify(collision)}`);
