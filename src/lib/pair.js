@@ -4,6 +4,8 @@ export const DEFAULT_MIX = {
   verification: 5,
 };
 
+export const DEFAULT_BAND = 8;
+
 export function normalizeMix(mix = DEFAULT_MIX) {
   const values = {
     planning: nonNegativeNumber(mix.planning),
@@ -20,11 +22,36 @@ export function normalizeMix(mix = DEFAULT_MIX) {
   };
 }
 
-export function computeQualityFloors(models) {
-  const intelligence = plottableModels(models).map((model) => model.intelligence);
+export function computeQualityFloors(models, bandWidth = DEFAULT_BAND) {
+  const plottable = plottableModels(models);
+  const intelligence = plottable.map((model) => model.intelligence);
+  if (intelligence.length === 0) {
+    return { planning: null, execution: null, bandWidth, max: null };
+  }
+
+  const max = Math.max(...intelligence);
+  const planning = intelligence.length === 1
+    ? intelligence[0]
+    : max - bandWidth;
+
   return {
-    planning: percentile(intelligence, 0.75),
+    planning,
     execution: percentile(intelligence, 0.5),
+    bandWidth,
+    max,
+  };
+}
+
+export function satisfiesSeparation(a, b) {
+  const priceRatio = a.cost_per_1m_avg > 0 && b.cost_per_1m_avg > 0
+    ? Math.max(a.cost_per_1m_avg, b.cost_per_1m_avg) / Math.min(a.cost_per_1m_avg, b.cost_per_1m_avg)
+    : null;
+  const scoreGap = Math.abs(a.intelligence - b.intelligence);
+  return {
+    pricePath: priceRatio !== null && priceRatio >= 1.5,
+    scorePath: scoreGap >= 2.0,
+    priceRatio,
+    scoreGap,
   };
 }
 
@@ -38,12 +65,12 @@ export function expectedCost(planning, execution, mix, modelBasedVerification = 
     + (normalizedMix.verification * verificationCost);
 }
 
-export function recommendPairs(models, mix = DEFAULT_MIX, modelBasedVerification = false) {
+export function recommendPairs(models, mix = DEFAULT_MIX, modelBasedVerification = false, bandWidth = DEFAULT_BAND) {
   const plottable = plottableModels(models);
   const normalizedMix = normalizeMix(mix);
   if (!normalizedMix) {
     return {
-      floors: { planning: null, execution: null },
+      floors: { planning: null, execution: null, bandWidth, max: null },
       mix: null,
       pairs: [],
       reason: 'Enter a task mix greater than 0% to calculate a qualifying pair.',
@@ -52,19 +79,19 @@ export function recommendPairs(models, mix = DEFAULT_MIX, modelBasedVerification
 
   if (plottable.length === 0) {
     return {
-      floors: { planning: null, execution: null },
+      floors: { planning: null, execution: null, bandWidth, max: null },
       mix: normalizedMix,
       pairs: [],
       reason: 'No qualifying pair: no plottable models meet the intelligence-and-price requirements.',
     };
   }
 
-  const floors = computeQualityFloors(plottable);
+  const floors = computeQualityFloors(plottable, bandWidth);
   const planningCandidates = plottable.filter((model) => model.intelligence >= floors.planning);
   const executionCandidates = plottable.filter((model) => model.intelligence >= floors.execution);
 
   if (planningCandidates.length === 0) {
-    return emptyRecommendation(normalizedMix, floors, `No qualifying pair: the planning floor (p75 ${floors.planning.toFixed(1)}) has no qualifying model.`);
+    return emptyRecommendation(normalizedMix, floors, `No qualifying pair: the planning floor (frontier band −${floors.bandWidth} → ≥${floors.planning.toFixed(1)}) has no qualifying model.`);
   }
   if (executionCandidates.length === 0) {
     return emptyRecommendation(normalizedMix, floors, `No qualifying pair: the execution floor (median ${floors.execution.toFixed(1)}) has no qualifying model.`);
@@ -75,9 +102,11 @@ export function recommendPairs(models, mix = DEFAULT_MIX, modelBasedVerification
     .map((execution) => ({
       planning,
       execution,
+      separation: satisfiesSeparation(planning, execution),
       expected_cost: expectedCost(planning, execution, normalizedMix, modelBasedVerification),
       combined_intelligence: planning.intelligence + execution.intelligence,
     })))
+    .filter((pair) => pair.separation.pricePath || pair.separation.scorePath)
     .sort(comparePairs);
 
   if (pairs.length === 0) {
@@ -85,14 +114,14 @@ export function recommendPairs(models, mix = DEFAULT_MIX, modelBasedVerification
     return emptyRecommendation(
       normalizedMix,
       floors,
-      `No qualifying pair: the planning floor (p75 ${floors.planning.toFixed(1)}) leaves ${onlyPlanning} without a distinct execution model above the execution floor (median ${floors.execution.toFixed(1)}).`,
+      `No qualifying pair: the planning floor (frontier band −${floors.bandWidth} → ≥${floors.planning.toFixed(1)}) leaves ${onlyPlanning} without a distinct execution model above the execution floor (median ${floors.execution.toFixed(1)}) that also satisfies the separation rule (≥1.5× price or ≥2.0 intelligence points).`,
     );
   }
 
   return { floors, mix: normalizedMix, pairs, reason: null };
 }
 
-function plottableModels(models) {
+export function plottableModels(models) {
   return models.filter((model) => (
     Number.isFinite(model.intelligence)
     && Number.isFinite(model.cost_per_1m_avg)

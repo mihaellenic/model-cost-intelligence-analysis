@@ -57,14 +57,27 @@ Given the plottable set (both intelligence and cost), with mix shares
 1. **Verification cost** is $0 by default (deterministic gates: tests, lint,
    CI — per `b2-taxonomy.md`). A toggle "model-based verification" switches V's
    cost to the execution model's cost. Default: OFF.
-2. **Quality floors** (defensible defaults, stated in the UI):
-   - Planning model: intelligence ≥ 75th percentile of the plottable
-     population.
-   - Execution model: intelligence ≥ 50th percentile (median).
+2. **Quality floors (AMENDED by D18, 2026-08-30 — supersedes the percentile
+    floors below):**
+    - Planning model: intelligence ≥ **(max scored intelligence − 8)**, i.e. a
+      frontier band, NOT a percentile of the whole catalog. The max is taken
+      over models with non-null intelligence at render time. The band width
+      (default 8 points) is **user-visible and adjustable** (a "frontier
+      band" control next to the mix inputs, D7 visibility principle).
+    - Execution model: intelligence ≥ median, unchanged.
+    - *Rationale (trial 1 failure):* p75-of-catalog measured "above the
+      catalog middle", admitting rank-24/125 models (DeepSeek V4 Flash 51.8)
+      into the planning slot ~11 points below the frontier. Percentile floors
+      were written for the 19-scored-model era; the relative band survives
+      AA index re-basing.
 3. **Candidate pairs**: all combinations of distinct plottable models
    (planning ≠ execution) where the planning model's intelligence ≥ the
-   planning floor and the execution model's intelligence ≥ the execution floor.
-   Both orderings are not needed — the slot assignment is fixed.
+   planning floor and the execution model's intelligence ≥ the execution floor,
+   **and the pair satisfies the D19 separation rule: members must differ by
+   ≥1.5× in `cost_per_1m_avg` (either direction) OR ≥2.0 intelligence points.**
+   This kills economically-identical mirror-pairs (the DeepSeek V4 Flash
+   0423/0731 twin case from trial 1) by construction. Both orderings are not
+   needed — the slot assignment is fixed.
 4. **Rank by expected workflow cost:**
 
    ```

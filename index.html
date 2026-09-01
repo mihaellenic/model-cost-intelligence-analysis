@@ -59,6 +59,11 @@
               <input id="mix-verification" type="number" min="0" step="1" value="5" inputmode="decimal" />
               <span>%</span>
             </label>
+            <label class="pair__control">
+              <span>Frontier band</span>
+              <input id="band-width" type="number" min="0" step="0.5" value="8" inputmode="decimal" />
+              <span>pts</span>
+            </label>
             <label class="pair__toggle">
               <input id="model-verification" type="checkbox" />
               <span>Model-based verification</span>
@@ -66,6 +71,7 @@
           </div>
           <div class="pair__context" id="pair-context"></div>
           <div class="pair__results" id="pair-results" aria-live="polite"></div>
+          <div class="pair__ranking" id="pair-ranking" hidden></div>
         </div>
       </section>
 
