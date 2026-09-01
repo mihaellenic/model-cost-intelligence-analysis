@@ -4,6 +4,7 @@ import { applyFilters, uniqueFamilies } from './lib/filters.js';
 import { recommendPairs, DEFAULT_MIX, DEFAULT_BAND } from './lib/pair.js';
 import { computeLensCard } from './lib/lens.js';
 import { tooltipLines } from './lib/tooltip.js';
+import { freshnessLine } from './lib/freshness.js';
 import { QUADRANT_INFO, classify, median } from './lib/quadrants.js';
 
 // D23: mix + band are frozen constants, displayed read-only. The decision
@@ -45,13 +46,17 @@ function highlight(id) {
 }
 
 async function load() {
-  const res = await fetch('/models.json');
+  const res = await fetch(`${import.meta.env.BASE_URL}models.json`);
   state.data = await res.json();
   els.meta.innerHTML = `
     <div><b>${state.data.models.length}</b> models tracked</div>
     <div>Generated: <code>${new Date(state.data.generated_at).toLocaleString()}</code></div>
     <div>Refresh: <code>npm run data</code></div>
   `;
+  document.getElementById('foot-freshness').textContent = freshnessLine(
+    state.data.generated_at,
+    state.data.benchmarks_fetched_at,
+  );
   populateFamilyFilter();
   attachFilterHandlers();
   render();
@@ -333,6 +338,6 @@ function formatPercent(value) {
 }
 
 load().catch((err) => {
-  els.meta.textContent = 'Failed to load /models.json. Run `npm run data && npm run build`.';
+  els.meta.textContent = `Failed to load ${import.meta.env.BASE_URL}models.json. Run \`npm run data && npm run build\`.`;
   console.error(err);
 });

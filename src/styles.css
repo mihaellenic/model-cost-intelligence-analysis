@@ -357,3 +357,7 @@ a:hover { text-decoration: underline; }
   padding: 1px 6px;
   border-radius: 4px;
 }
+.foot__freshness {
+  margin-top: 6px;
+  color: var(--muted);
+}

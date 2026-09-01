@@ -141,8 +141,8 @@ export async function fetchAaBenchmarks({
   return { ok: true, capture };
 }
 
-export async function main() {
-  const result = await fetchAaBenchmarks();
+export async function main(options = {}) {
+  const result = await fetchAaBenchmarks(options);
   if (!result.ok) process.exitCode = 1;
 }
 

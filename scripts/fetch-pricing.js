@@ -61,13 +61,14 @@ export async function fetchPricing({
   return capture;
 }
 
-export async function main() {
+export async function main(options = {}) {
   try {
-    await fetchPricing();
+    await fetchPricing(options);
   } catch (error) {
     console.warn('[fetch-pricing] failed:', error.message);
-    mkdirSync(dirname(DEFAULT_OUT), { recursive: true });
-    writeFileSync(DEFAULT_OUT, JSON.stringify({
+    const outPath = options.outPath ?? DEFAULT_OUT;
+    mkdirSync(dirname(outPath), { recursive: true });
+    writeFileSync(outPath, JSON.stringify({
       source: PRICING_URL,
       fetched_at: new Date().toISOString(),
       models: [],
