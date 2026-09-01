@@ -43,27 +43,8 @@
           <p>Two distinct models: a stronger planner and a cost-efficient executor. Ranked by expected workflow cost.</p>
         </header>
         <div class="card__body">
-          <div class="pair__controls" aria-label="Task mix controls">
-            <label class="pair__control">
-              <span>Planning</span>
-              <input id="mix-planning" type="number" min="0" step="1" value="65" inputmode="decimal" />
-              <span>%</span>
-            </label>
-            <label class="pair__control">
-              <span>Execution</span>
-              <input id="mix-execution" type="number" min="0" step="1" value="30" inputmode="decimal" />
-              <span>%</span>
-            </label>
-            <label class="pair__control">
-              <span>Verification</span>
-              <input id="mix-verification" type="number" min="0" step="1" value="5" inputmode="decimal" />
-              <span>%</span>
-            </label>
-            <label class="pair__control">
-              <span>Frontier band</span>
-              <input id="band-width" type="number" min="0" step="0.5" value="8" inputmode="decimal" />
-              <span>pts</span>
-            </label>
+          <div class="pair__controls" aria-label="Task mix parameters">
+            <div class="pair__params" id="pair-params"></div>
             <label class="pair__toggle">
               <input id="model-verification" type="checkbox" />
               <span>Model-based verification</span>

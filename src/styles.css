@@ -147,37 +147,26 @@ a:hover { text-decoration: underline; }
 #scatter { height: 560px; }
 
 .pair__controls {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(130px, 180px)) minmax(220px, 1fr);
-  gap: 12px;
-  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  align-items: center;
   padding-bottom: 14px;
   border-bottom: 1px solid var(--line);
 }
-.pair__control {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 6px;
+.pair__params {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  align-items: baseline;
   color: var(--muted);
-  font-size: 11px;
-  letter-spacing: 0.04em;
+  font-size: 12px;
+}
+.pair__params-label {
+  font-size: 10px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-}
-.pair__control input {
-  grid-column: 1;
-  background: var(--panel-2);
-  color: var(--text);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 7px 8px;
-  font: inherit;
-  font-size: 14px;
-  letter-spacing: 0;
-}
-.pair__control > span:last-child {
-  grid-column: 2;
-  grid-row: 2;
-  align-self: center;
+  color: var(--accent);
 }
 .pair__toggle {
   display: flex;
@@ -259,7 +248,32 @@ a:hover { text-decoration: underline; }
   gap: 12px;
   align-items: stretch;
 }
-.pair__model { min-width: 0; }
+.pair__model { min-width: 0; position: relative; }
+.pair__model[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  z-index: 20;
+  width: max-content;
+  max-width: 300px;
+  white-space: pre-line;
+  background: #0d1320;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+.pair__model[data-tip]:hover::after,
+.pair__model[data-tip]:focus-within::after {
+  opacity: 1;
+}
 .pair__role { display: inline-block; background: rgba(255,255,255,0.06); color: var(--muted); margin-bottom: 6px; }
 .pair__name {
   font-size: 14px;
@@ -326,7 +340,6 @@ a:hover { text-decoration: underline; }
 }
 
 @media (max-width: 760px) {
-  .pair__controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .pair__toggle { grid-column: 1 / -1; }
   .pair__models { grid-template-columns: 1fr; }
   .pair__arrow { display: none; }

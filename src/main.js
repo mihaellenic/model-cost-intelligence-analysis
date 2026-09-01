@@ -1,19 +1,23 @@
 import { createBarChart, updateBarChart } from './charts/bar.js';
 import { createScatterChart, updateScatterChart } from './charts/scatter.js';
 import { applyFilters, uniqueFamilies } from './lib/filters.js';
-import { recommendPairs } from './lib/pair.js';
+import { recommendPairs, DEFAULT_MIX, DEFAULT_BAND } from './lib/pair.js';
 import { computeLensCard } from './lib/lens.js';
+import { tooltipLines } from './lib/tooltip.js';
 import { QUADRANT_INFO, classify, median } from './lib/quadrants.js';
+
+// D23: mix + band are frozen constants, displayed read-only. The decision
+// layer still takes them as parameters (pair.js/lens.js/vendor.js untouched);
+// only the UI inputs are gone. Re-enabling editability is UI-only work.
+const MIX = DEFAULT_MIX;
+const BAND = DEFAULT_BAND;
 
 const els = {
   meta: document.getElementById('meta'),
   filterFamily: document.getElementById('filter-family'),
   filterWithIntel: document.getElementById('filter-with-intel'),
   filterWithPrice: document.getElementById('filter-with-price'),
-  mixPlanning: document.getElementById('mix-planning'),
-  mixExecution: document.getElementById('mix-execution'),
-  mixVerification: document.getElementById('mix-verification'),
-  bandWidth: document.getElementById('band-width'),
+  pairParams: document.getElementById('pair-params'),
   modelVerification: document.getElementById('model-verification'),
   pairContext: document.getElementById('pair-context'),
   pairResults: document.getElementById('pair-results'),
@@ -67,9 +71,6 @@ function attachFilterHandlers() {
   });
   els.filterWithIntel.addEventListener('change', render);
   els.filterWithPrice.addEventListener('change', render);
-  for (const input of [els.mixPlanning, els.mixExecution, els.mixVerification, els.bandWidth]) {
-    input.addEventListener('input', render);
-  }
   els.modelVerification.addEventListener('change', render);
 }
 
@@ -96,24 +97,12 @@ function render() {
   renderPair(plottable, medians);
 }
 
-function currentMix() {
-  return {
-    planning: Number(els.mixPlanning.value),
-    execution: Number(els.mixExecution.value),
-    verification: Number(els.mixVerification.value),
-  };
-}
-
-function currentBand() {
-  return Number(els.bandWidth.value);
-}
-
 function renderPair(plottable, medians) {
   const recommendation = recommendPairs(
     plottable,
-    currentMix(),
+    MIX,
     els.modelVerification.checked,
-    currentBand(),
+    BAND,
   );
 
   if (!recommendation.mix) {
@@ -130,6 +119,11 @@ function renderPair(plottable, medians) {
   const floorLabel = recommendation.floors.planning == null
     ? 'Quality floors will appear when models are plottable.'
     : `Planning floor: frontier band −${recommendation.floors.bandWidth.toFixed(1)} → ≥${recommendation.floors.planning.toFixed(1)} (max ${recommendation.floors.max.toFixed(1)}) · execution ≥ median (${recommendation.floors.execution.toFixed(1)}).`;
+  els.pairParams.innerHTML = `
+    <span class="pair__params-label">Params</span>
+    <span>mix ${formatPercent(planning)} / ${formatPercent(execution)} / ${formatPercent(verification)}</span>
+    <span>frontier band ${recommendation.floors.bandWidth.toFixed(1)}</span>
+  `;
   els.pairContext.innerHTML = `
     <span>${floorLabel}</span>
     <span>Normalized mix: ${formatPercent(planning)} planning · ${formatPercent(execution)} execution · ${formatPercent(verification)} verification.</span>
@@ -138,9 +132,9 @@ function renderPair(plottable, medians) {
 
   const card = computeLensCard(
     plottable,
-    currentMix(),
+    MIX,
     els.modelVerification.checked,
-    currentBand(),
+    BAND,
   );
 
   if (!card.row1) {
@@ -310,13 +304,21 @@ function renderRole(model, role, medians, separation) {
     ? `<span class="pair__separation">${separationLabel(separation)}</span>`
     : '';
   return `
-    <div class="pair__model">
+    <div class="pair__model" data-tip="${escapeAttr(tooltipLines(model).join('\n'))}">
       <span class="pair__role">${role}</span>
       <div class="pair__name">${model.name}</div>
       <div class="pair__meta">${model.family} · Intel ${model.intelligence.toFixed(1)} · $${model.cost_per_1m_avg.toFixed(4)}/1M</div>
       <span class="pair__quadrant pair__quadrant--${quadrant}">${quadrantLabel}</span>${separationChip}
     </div>
   `;
+}
+
+function escapeAttr(value) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 function separationLabel(separation) {
