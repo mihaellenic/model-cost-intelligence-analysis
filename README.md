@@ -34,7 +34,7 @@ dist/
 └── models.json           # generated, gitignored
 ```
 
-Drop `dist/` on any static host (GitHub Pages, Netlify, Cloudflare Pages, S3, …). The browser only loads generated `/models.json`; it never calls OpenRouter or receives the API key.
+Drop `dist/` on any static host (GitHub Pages, Netlify, Cloudflare Pages, S3, …). The browser only loads generated `models.json`; it never calls OpenRouter or receives the API key. The repo is configured for GitHub Pages with the Vite base set to the repo sub-path (`/model-cost-intelligence-analysis/`).
 
 ## How it works
 
@@ -46,7 +46,7 @@ Drop `dist/` on any static host (GitHub Pages, Netlify, Cloudflare Pages, S3, �
 | `scripts/fetch-aa-benchmarks.js` | `https://artificialanalysis.ai/api/v2/language/models/free` (AA API key required) | `public/aa-raw.json` |
 | `scripts/build-data.js` | filters and collapse-audits the OpenRouter catalog, then joins AA models by deterministic normalized slug | `public/models.json` |
 
-`npm run data` runs pricing, AA capture, then the builder. `npm run data:pricing` and `npm run data:aa` run the individual default fetches. `npm run data:benchmarks` retains the OpenRouter benchmark fetcher as an auxiliary fallback and requires `OPENROUTER_API_KEY`; it is not part of the default pipeline. AA capture is always either a complete `{ source, fetched_at, intelligence_index_version, models }` snapshot or an explicit error envelope. Missing keys, fetch failures, malformed API data, and suspicious capture shrink write an error state. The builder refuses every error state rather than silently publishing all-null intelligence records.
+`npm run data` runs pricing, AA capture, then the builder. `npm run data:pricing` and `npm run data:aa` run the individual default fetches. `npm run data:benchmarks` retains the OpenRouter benchmark fetcher as an auxiliary fallback and requires `OPENROUTER_API_KEY`; it is not part of the default pipeline. AA capture is always either a complete `{ source, fetched_at, intelligence_index_version, models }` snapshot or an explicit error envelope. Missing keys, fetch failures, malformed API data, and suspicious capture shrink write an error state. The builder refuses every error state rather than silently publishing all-null intelligence records. `npm run build` runs the full fail-closed chain (`data` → `test` → `vite build`); the data scripts use `--env-file-if-exists=.env` so they also run in CI, where the keys come from Actions secrets.
 
 ### Family allowlist
 
@@ -118,12 +118,26 @@ The builder (`scripts/build-data.js`) never guesses:
 
 ### Refresh schedule
 
-Re-run `npm run data` whenever you want fresh numbers. For automation:
+The site is hosted on **GitHub Pages** and refreshed automatically every
+Monday 06:00 UTC by a weekly canary (`.github/workflows/weekly-canary.yml`)
+that re-exercises both live sources and the test suite. A deploy workflow
+(`.github/workflows/deploy.yml`) runs the full fail-closed chain on every push
+to `main` and on manual dispatch:
 
 ```bash
-# daily refresh + redeploy (example with Netlify CLI)
-0 6 * * *  cd /path/to/repo && npm run data && netlify deploy --prod
+npm run data && npm test && vite build   # then upload dist/ + deploy-pages
 ```
+
+Any fetcher error state (missing key, fetch failure, malformed response,
+capture shrink) or test failure exits non-zero and stops the workflow **before
+upload** — the previously published Pages deployment stays live and the
+failure email arrives automatically. The API keys live in Actions secrets
+(`AA_API_KEY`, `OPENROUTER_API_KEY`); `.env` is never committed. The footer
+shows `Data generated` / `benchmarks fetched` timestamps with a `⚠ stale
+(>7 days)` marker when the data is older than a week.
+
+To refresh manually: `npm run data` locally, or trigger the deploy workflow
+from the Actions tab.
 
 ## Caveats
 
